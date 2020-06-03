@@ -16,8 +16,7 @@ func getHref(t html.Token) (ok bool, href string) {
 		//Find the links that are download files
 		 match:=re.FindStringSubmatch(a.Val)
         if len(match)!=0{
-			//name:=strings.Split(a.Val, "/")
-			//names=name[3]
+			
 			href = match[0]
 			href=href[10:]
 			ok = true
@@ -52,7 +51,7 @@ func getMusicLinks(url string,ch chan string){
 			if !ok {
 				continue
 			}
-			//fmt.Println("url!",url)
+			
 			ch<-url
 		}
 		
@@ -61,32 +60,32 @@ func getMusicLinks(url string,ch chan string){
 
 }
 	
-func download(ok string){
-	names:=strings.Split(ok,"/") //splitting the url to get name and id
-	//Fetching the url
-   resp, err := http.Get("http://mymp3song.guru/files/download/id/"+names[0])  
-//err := exec.Command("explorer","http://mymp3song.guru/files/download/id/"+ok).Run()
-	if err==nil{
-		body, _ := ioutil.ReadAll(resp.Body)
-		//Writing the output to a file
-		error := ioutil.WriteFile("Music/"+names[1]+".mp3", body,0777)  
-		fmt.Println(error)
-		fmt.Println(names[1]+".mp3 downloaded")
-	} else {
-		fmt.Println(err,"err")
+func download(ok string) error{
+names:=strings.Split(ok,"/") //splitting the url to get name and id
+   resp, err := http.Get("http://mymp3song.guru/files/download/id/"+names[0])
+
+	if err!=nil{
+		return err;
 	}
-}
-	
+	body, _ := ioutil.ReadAll(resp.Body)
+	error := ioutil.WriteFile("../../Music/"+names[1]+".mp3", body,0777)
+	if error!=nil{
+         return error
+	}
+	fmt.Println(names[1]+".mp3 downloaded")
+	return nil
+	} 
+
 func main(){
-	chIds := make(chan string)
-	_= os.MkdirAll("Music", 0755)
+chIds := make(chan string)
+_= os.MkdirAll("Music", 0755)
 for i:=1; i<=5;i++{	
 go getMusicLinks("http://mymp3song.guru/filelist/3376/special_mp3_songs/new2old/"+strconv.Itoa(i),chIds)
 }
 for {
 	select {
 	case ok:=<- chIds:
-		//fmt.Println("found url",ok)
+		
 		go download(ok)
 
 	}
